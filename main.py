@@ -2,7 +2,7 @@ import argparse
 import subprocess
 import os
 
-
+# This function creates all the folders required to store the analysis.
 def stageEnvironment(args):
     dumpTypes = ['filedumps','strings','dll','strings-vs']
     pidList = [int(pid) for pid in args.pid[0].split(',')]
@@ -29,7 +29,7 @@ def stageEnvironment(args):
 
     return pidList, realPath
 
-
+# This function iterates over the given PIDs and keeps track of the count. This function is primarily here to manage the loop and call other functions.
 def iteratePIDs(args, pidList, realPath):
     pidCount = len(pidList)
 
@@ -49,12 +49,12 @@ def iteratePIDs(args, pidList, realPath):
         if args.dll:
             dllList(args, pid, realPath)
 
-
+# This function runs volatility3 and creates a filedump of a given PID.
 def fileDump(args, pid, realPath):
     pid = str(pid)
     os.system(f'{args.binary[0]} -f {args.file[0]} -o {realPath}filedumps/PID-{pid} windows.dumpfiles.DumpFiles --pid {pid}')
 
-
+# This function runs volatility3 and extracts strings from a filedump of a given PID.
 def extractStringData(pid, realPath):
     dumpDir = f'{realPath}filedumps/PID-{pid}/'
 
@@ -64,7 +64,7 @@ def extractStringData(pid, realPath):
             with open(f'{realPath}strings/PID-{pid}', 'w') as f:
                 subprocess.run(['strings', '-a', '-el', dumpDir+filename], stdout=f, universal_newlines=True)
 
-
+# This function uses the volatility strings module instead of the strings command to extract strings from a filedump of a given PID.
 def extractStringDataVolatility(args, pid, realPath):
     dumpDir = f'{realPath}filedumps/PID-{pid}/'
 
@@ -74,11 +74,11 @@ def extractStringDataVolatility(args, pid, realPath):
             dumpFile = f'{dumpDir}{filename}'
             os.system(f'{args.binary[0]} -f {args.file[0]} -o {realPath}strings-vs/PID-{pid} windows.strings --strings-file {dumpFile}')
 
-
+# This function runs volatility to extract a dlllist from a given PID.
 def dllList(args, pid, realPath):
     os.system(f'{args.binary[0]} -f {args.file[0]} -o {realPath}dll/PID-{pid} windows.dlllist.DllList --pid {pid}')
 
-
+# Main function containing the argparse code(for arguments) and the initial calls to the other parts of the script.
 def main():
     parser = argparse
 
@@ -121,7 +121,7 @@ def main():
 
     iteratePIDs(args, pidList, realPath)
 
-
+# Initial call.
 if __name__ == "__main__":
     main()
 
