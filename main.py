@@ -4,43 +4,47 @@ import os
 
 
 def stageEnvironment(args):
+    pidList = [int(pid) for pid in args.pid[0].split(',')]
+
+    if not args.output[0].endswith('/'):
+        args.output[0] += '/'
+
+    realPath = os.getcwd() + '/' + args.output[0]
+
     if not os.path.isfile(args.file[0]):
-        return "[Error] File doesn't exist."
+        return
 
     if not os.path.exists(args.output[0]):
         os.makedirs(args.output[0], exist_ok=True)
 
-    pidList = [int(pid) for pid in args.pid[0].split(',')]
-
-    return pidList
-
-
-def dumpFiles(args):
-    pidList = [int(pid) for pid in args.pid[0].split(',')]
-    realPath=os.getcwd()+'/'+args.output[0]
-
     for pid in pidList:
         pid = str(pid)
-        #print(args.binary[0]+' -f '+args.file[0]+' -o '+args.output[0]+'PID'+pid+'-filedump/'+' windows.dumpfiles.DumpFiles --pid '+pid)
-        os.system(args.binary[0] + ' -f ' + args.file[0] + ' -o ' + realPath + 'PID' + pid + '-filedump/' + ' windows.dumpfiles.DumpFiles --pid ' + pid)
+        os.makedirs(f'{realPath}filedump-PID{pid}/', exist_ok=True)
 
-        extractStringData(realPath+'PID'+pid+'-filedump/')
-
+    return pidList, realPath
 
 
+def dumpFiles(args, pidList, realPath):
+    pidCount = len(pidList)
 
-def extractStringData(path):
-    stringDirectory = path+'stringsOutput/'
+    for i, pid in enumerate(pidList, start=1):
+        print()
+        print(f'[Info]: Processing {i}/{pidCount}')
+        print()
+        pid = str(pid)
+        os.system(f'{args.binary[0]} -f {args.file[0]} -o {realPath}filedump-PID{pid}/ windows.dumpfiles.DumpFiles --pid {pid}')
 
-    if not os.path.exists(stringDirectory):
-        output_dir = os.path.join(path, 'stringsOutput')
-        os.makedirs(output_dir, exist_ok=True)
+        extractStringData(realPath, pid)
 
-    for file in os.listdir(path):
+
+def extractStringData(realPath, pid):
+    dumpDir = realPath+'filedump-PID'+pid+'/'
+
+    for file in os.listdir(dumpDir):
         filename = os.fsdecode(file)
         if filename.endswith('.dat'):
-            with open(path + 'stringsOutput/strings', 'w') as f:
-                subprocess.run(['strings', '-a', '-el', path+filename], stdout=f, universal_newlines=True)
+            with open(f'{realPath}strings-PID{pid}', 'w') as f:
+                subprocess.run(['strings', '-a', '-el', dumpDir+filename], stdout=f, universal_newlines=True)
 
 
 
@@ -68,11 +72,11 @@ def main():
     )
     args = parser.parse_args()
 
-    status = stageEnvironment(args)
-    if status:
-        quit(status)
+    pidList, realPath = stageEnvironment(args)
+    if not pidList:
+        quit("[Error]: Failed to create directory or stage environment.")
 
-    dumpFiles(args)
+    dumpFiles(args, pidList, realPath)
 
 
 if __name__ == "__main__":
