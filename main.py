@@ -41,7 +41,7 @@ def stageEnvironment(args):
         dumpDir = f'{realPath}{dumpType}/'
         os.makedirs(f'{dumpDir}', exist_ok=True)
 
-        if dumpType != 'strings':
+        if dumpType == 'filedumps' or dumpType == 'dlldumps':
             for pid in pidList:
                 pid = str(pid)
                 os.makedirs(f'{dumpDir}PID-{pid}/', exist_ok=True)
@@ -69,6 +69,10 @@ def iteratePIDs(args, pidList, realPath):
         if args.dll:
             print(f'[Info]: Dumping {pid}\'s used dlls.')
             dllList(args, pid, realPath)
+
+        if args.volatilitystrings:
+            print(f'[Info]: Sorting {pid}\'s string text.')
+            volatilityStringSort(pid, realPath)
 
 
 # This function runs volatility3 and creates a filedump of a given PID.
@@ -100,6 +104,10 @@ def extractStringDataVolatility(args, realPath):
 # This function runs volatility to extract a dlllist from a given PID.
 def dllList(args, pid, realPath):
     os.system(f'{args.binary[0]} -f {args.file[0]} -o {realPath}dlldumps/PID-{pid} windows.dlllist.DllList --pid {pid}')
+
+
+def volatilityStringSort(pid, realPath):
+    os.system(f'cat {realPath}vs-stringdumps/mappedStrings.txt | grep -A 1 "Process {pid}" > {realPath}vs-stringdumps/PID-{pid}.txt')
 
 
 # Main function containing the argparse code(for arguments) and the initial calls to the other parts of the script.
@@ -145,7 +153,7 @@ def main():
 
     pidList, realPath = stageEnvironment(args)
 
-    if args.volatilitystrings:
+    if not args.volatilitystrings:
         print('[Info]: Extracting string text from the memory dump. This may take a while..')
         extractedStringFile = f'{realPath}vs-stringdumps/extractedStrings.txt'
         os.system(f'strings -o {args.file[0]} > {extractedStringFile}')
