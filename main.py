@@ -100,6 +100,9 @@ def extractStringDataVolatility(args, realPath):
     print('[Warn]: This process can take a lot of RAM and might cause the system to run Out Of Memory(OOM), please monitor RAM usage.')
     os.system(f'{args.binary[0]} -f {args.file[0]}  windows.strings --strings-file {extractedStringFile} > {translatedMappedFile}')
 
+    print(f'[Info]: Sorting String data in free memory.')
+    os.system(f'cat {realPath}vs-stringdumps/mappedStrings.txt | grep -i -A 1 "FREE MEMORY" > {realPath}vs-stringdumps/freeMemory.txt')
+
 
 # This function runs volatility to extract a dlllist from a given PID.
 def dllList(args, pid, realPath):
