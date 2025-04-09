@@ -153,7 +153,7 @@ def main():
 
     pidList, realPath = stageEnvironment(args)
 
-    if not args.volatilitystrings:
+    if args.volatilitystrings:
         print('[Info]: Extracting string text from the memory dump. This may take a while..')
         extractedStringFile = f'{realPath}vs-stringdumps/extractedStrings.txt'
         os.system(f'strings -o {args.file[0]} > {extractedStringFile}')
