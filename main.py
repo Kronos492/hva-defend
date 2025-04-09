@@ -59,7 +59,7 @@ def iteratePIDs(args, pidList, realPath):
         print()
 
         if args.filedump:
-            print(f'[Info]: Dumping {pid} files.')
+            print(f'[Info]: Dumping files from PID {pid}.')
             fileDump(args, pid, realPath)
 
         if args.strings:
