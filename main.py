@@ -34,7 +34,7 @@ def stageEnvironment(args):
         dumpTypes.append('vs-stringdumps')
 
     if len(dumpTypes) == 0:
-        quit('[Error]: No dump types specified, please use -h to see available dump types.')
+        quit('[Error]: No dump types specified(-fd, -dd, -vs, -sd). Use -h for more information.')
 
     print('[Info]: Creating folders.')
     for dumpType in dumpTypes:
